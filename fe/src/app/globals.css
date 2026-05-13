@@ -1,0 +1,36 @@
+:root {
+  /* Bảng màu chính từ thiết kế */
+  --color-primary: #22C55E; /* Xanh lá */
+  --color-text-main: #16A34A; /* Xanh lá đậm */
+  --color-bg-light: #F3F4F6; /* Xám nhạt nền */
+  --color-text-dark: #1F2937; /* Xám đậm text */
+  --color-warning-yellow: #FACC15; /* Vàng cảnh báo */
+  --color-danger-red: #DC2626; /* Đỏ cảnh báo */
+  --color-white: #FFFFFF;
+
+  /* Typography */
+  --font-family-main: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family-main);
+  background-color: var(--color-bg-light);
+  color: var(--color-text-dark);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+
+ul {
+  list-style: none;
+}

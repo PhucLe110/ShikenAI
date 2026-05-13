@@ -1,0 +1,33 @@
+[
+  {
+    "title": "Đề thi thử JLPT N3 - Đề số 1",
+    "level": "N3",
+    "duration": 105,
+    "questions": [
+      {
+        "id": 1,
+        "text": "Câu 1: Từ [学生] có nghĩa là gì?",
+        "options": ["Học sinh", "Giáo viên", "Bác sĩ", "Kỹ sư"],
+        "correctAnswer": "Học sinh"
+      },
+      {
+        "id": 2,
+        "text": "Câu 2: Hãy chọn cách đọc đúng cho từ [漢字]:\nTrong tiếng Nhật, _ rất quan trọng.",
+        "options": ["hiragana", "katakana", "kanji", "romaji"],
+        "correctAnswer": "kanji"
+      },
+      {
+        "id": 3,
+        "text": "Câu 3: Chọn từ thích hợp điền vào chỗ trống:\n明日、雨が____、試合は中止です。",
+        "options": ["降ったら", "降っても", "降るなら", "降れば"],
+        "correctAnswer": "降ったら"
+      },
+      {
+        "id": 4,
+        "text": "Câu 4: Đọc đoạn văn sau và trả lời câu hỏi:\n私は毎朝コーヒーを飲みます。コーヒーを飲むと目が覚めます。\nCâu hỏi: Tác giả uống gì mỗi sáng?",
+        "options": ["Trà", "Cà phê", "Sữa", "Nước hoa quả"],
+        "correctAnswer": "Cà phê"
+      }
+    ]
+  }
+]

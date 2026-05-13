@@ -1,0 +1,204 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.headerTitle {
+  display: inline-block;
+  background-color: var(--color-primary, #22C55E);
+  color: #fff;
+  padding: 8px 24px;
+  border-radius: 8px;
+  font-size: 1.25rem;
+  margin-bottom: 30px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.cardTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 12px;
+}
+
+.scoreSection {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.scoreBig {
+  font-family: monospace;
+}
+
+.scoreValue {
+  font-size: 4rem;
+  font-weight: 800;
+}
+
+.scoreTotal {
+  font-size: 1.5rem;
+  color: #6b7280;
+}
+
+.status {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 10px 0;
+}
+
+.statusText {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.statsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.statItem {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1rem;
+  color: #4b5563;
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+}
+
+.btnPrimary, .btnSecondary {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnPrimary {
+  background-color: var(--color-primary, #22C55E);
+  color: #fff;
+  border: none;
+}
+
+.btnPrimary:hover {
+  background-color: #16A34A;
+}
+
+.btnSecondary {
+  background-color: #fff;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+}
+
+.btnSecondary:hover {
+  background-color: #f3f4f6;
+}
+
+/* Biểu đồ Doughnut */
+.chartArea {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.doughnut {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doughnutInner {
+  width: 80px;
+  height: 80px;
+  background-color: #fff;
+  border-radius: 50%;
+}
+
+.chartLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+/* Skills */
+.skillsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.skillItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skillHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.skillBarBg {
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.skillBarFill {
+  height: 100%;
+  background-color: var(--color-primary, #22C55E);
+  border-radius: 4px;
+}

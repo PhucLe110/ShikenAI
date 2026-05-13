@@ -1,0 +1,18 @@
+{
+  "name": "shikenai-crawler",
+  "version": "1.0.0",
+  "description": "Scraper for JLPT questions",
+  "main": "index.js",
+  "scripts": {
+    "scrape:jlpt247": "node jlpt247_scraper.js",
+    "scrape:tryjlpt": "node tryjlpt_scraper.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.2.0",
+    "dotenv": "^17.4.2",
+    "mongodb": "^7.2.0",
+    "mongoose": "^9.6.2",
+    "puppeteer": "^22.15.0"
+  }
+}
