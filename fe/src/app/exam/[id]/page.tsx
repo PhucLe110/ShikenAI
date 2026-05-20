@@ -1,15 +1,22 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import styles from './page.module.css';
-import { useAntiCheat } from '@/hooks/useAntiCheat';
-import api from '@/services/api';
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import styles from "./page.module.css";
+import Avatar from "@/components/Avatar";
+import { useAntiCheat } from "@/hooks/useAntiCheat";
+import api from "@/services/api";
 
 export default function ExamPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { id: examId } = params;
-  const { warnings, isTerminated, showWarningModal, acknowledgeWarning, maxWarnings } = useAntiCheat(examId);
+  const {
+    warnings,
+    isTerminated,
+    showWarningModal,
+    acknowledgeWarning,
+    maxWarnings,
+  } = useAntiCheat(examId);
 
   const [examData, setExamData] = useState<any>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -23,23 +30,25 @@ export default function ExamPage({ params }: { params: { id: string } }) {
   const [showPauseModal, setShowPauseModal] = useState(false);
   const [showResumeModal, setShowResumeModal] = useState(false);
   const [savedProgress, setSavedProgress] = useState<any>(null);
-  const [submitMessage, setSubmitMessage] = useState('');
+  const [submitMessage, setSubmitMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPausing, setIsPausing] = useState(false);
   const [isSubmitError, setIsSubmitError] = useState(false);
 
   // Ref để lấy timeLeft mới nhất trong async handlers
   const timeLeftRef = useRef(timeLeft);
-  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
+  useEffect(() => {
+    timeLeftRef.current = timeLeft;
+  }, [timeLeft]);
 
   // ── Auth check ───────────────────────────────────────────────────────────
   useEffect(() => {
-    const userInfo = localStorage.getItem('userInfo');
+    const userInfo = localStorage.getItem("userInfo");
     if (userInfo) {
       setUser(JSON.parse(userInfo));
     } else {
-      alert('Vui lòng đăng nhập để làm bài');
-      router.push('/');
+      alert("Vui lòng đăng nhập để làm bài");
+      router.push("/");
     }
   }, [router]);
 
@@ -63,8 +72,8 @@ export default function ExamPage({ params }: { params: { id: string } }) {
         setLoading(false);
       } catch (error) {
         console.error(error);
-        alert('Không tìm thấy đề thi hoặc bạn không có quyền truy cập');
-        router.push('/');
+        alert("Không tìm thấy đề thi hoặc bạn không có quyền truy cập");
+        router.push("/");
       }
     };
     if (user) fetchExam();
@@ -74,7 +83,7 @@ export default function ExamPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     if (loading || isTerminated) return;
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
           return 0;
@@ -89,11 +98,11 @@ export default function ExamPage({ params }: { params: { id: string } }) {
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
   const handleSelectAnswer = (optionIdx: number) => {
-    setAnswers(prev => ({ ...prev, [currentQuestionIndex]: optionIdx }));
+    setAnswers((prev) => ({ ...prev, [currentQuestionIndex]: optionIdx }));
   };
 
   const totalQuestions = examData?.questions?.length ?? 0;
@@ -107,9 +116,13 @@ export default function ExamPage({ params }: { params: { id: string } }) {
     // Restore answers
     const restored: Record<number, number> = {};
     if (savedProgress.answers instanceof Map) {
-      savedProgress.answers.forEach((v: number, k: string) => { restored[Number(k)] = v; });
+      savedProgress.answers.forEach((v: number, k: string) => {
+        restored[Number(k)] = v;
+      });
     } else {
-      Object.entries(savedProgress.answers).forEach(([k, v]) => { restored[Number(k)] = v as number; });
+      Object.entries(savedProgress.answers).forEach(([k, v]) => {
+        restored[Number(k)] = v as number;
+      });
     }
     setAnswers(restored);
     setTimeLeft(savedProgress.timeLeft ?? examData.duration * 60);
@@ -127,16 +140,16 @@ export default function ExamPage({ params }: { params: { id: string } }) {
     setIsPausing(true);
     try {
       const currentTimeLeft = timeLeftRef.current;
-      const timeSpent = (examData.duration * 60) - Math.max(0, currentTimeLeft);
+      const timeSpent = examData.duration * 60 - Math.max(0, currentTimeLeft);
       await api.post(`/exams/${examId}/save-progress`, {
         answers,
         timeLeft: currentTimeLeft,
         timeSpent,
       });
-      router.push('/exams');
+      router.push("/exams");
     } catch (error) {
-      console.error('Lỗi khi lưu tiến độ:', error);
-      alert('Có lỗi khi lưu tiến độ. Vui lòng thử lại.');
+      console.error("Lỗi khi lưu tiến độ:", error);
+      alert("Có lỗi khi lưu tiến độ. Vui lòng thử lại.");
       setIsPausing(false);
     }
   };
@@ -147,17 +160,28 @@ export default function ExamPage({ params }: { params: { id: string } }) {
     setShowSubmitModal(false);
     setIsSubmitError(false);
     try {
-      const timeSpent = (examData.duration * 60) - Math.max(0, timeLeftRef.current);
-      const response = await api.post(`/exams/${examId}/submit`, { answers, timeSpent });
+      const timeSpent =
+        examData.duration * 60 - Math.max(0, timeLeftRef.current);
+      const response = await api.post(`/exams/${examId}/submit`, {
+        answers,
+        timeSpent,
+      });
       setIsSubmitError(false);
-      setSubmitMessage(isAutoSubmit ? 'Hết giờ! Hệ thống đã tự động nộp bài.' : 'Nộp bài thành công!');
+      setSubmitMessage(
+        isAutoSubmit
+          ? "Hết giờ! Hệ thống đã tự động nộp bài."
+          : "Nộp bài thành công!",
+      );
       setTimeout(() => {
         router.push(`/result/${response.data._id}`);
       }, 1500);
     } catch (error: any) {
-      console.error('Lỗi khi nộp bài:', error);
+      console.error("Lỗi khi nộp bài:", error);
       setIsSubmitError(true);
-      setSubmitMessage(error.response?.data?.message || 'Có lỗi xảy ra khi nộp bài. Vui lòng thử lại.');
+      setSubmitMessage(
+        error.response?.data?.message ||
+          "Có lỗi xảy ra khi nộp bài. Vui lòng thử lại.",
+      );
       setIsSubmitting(false);
     }
   };
@@ -167,12 +191,16 @@ export default function ExamPage({ params }: { params: { id: string } }) {
     if (examData && timeLeft === 0 && !isTerminated && !loading) {
       submitExam(true);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, isTerminated, examData, loading]);
 
   // ── Loading / Terminated ─────────────────────────────────────────────────
   if (loading) {
-    return <div style={{ textAlign: 'center', marginTop: '50px' }}>Đang tải đề thi...</div>;
+    return (
+      <div style={{ textAlign: "center", marginTop: "50px" }}>
+        Đang tải đề thi...
+      </div>
+    );
   }
 
   if (isTerminated) {
@@ -181,8 +209,13 @@ export default function ExamPage({ params }: { params: { id: string } }) {
         <div className={styles.modalContent}>
           <div className={styles.modalIcon}>❌</div>
           <h2 className={styles.modalTitle}>Bài thi đã kết thúc</h2>
-          <p className={styles.modalText}>Bạn đã vi phạm nội quy quá {maxWarnings} lần (Rời khỏi màn hình làm bài).</p>
-          <button className={styles.modalBtn} onClick={() => router.push('/')}>Về trang chủ</button>
+          <p className={styles.modalText}>
+            Bạn đã vi phạm nội quy quá {maxWarnings} lần (Rời khỏi màn hình làm
+            bài).
+          </p>
+          <button className={styles.modalBtn} onClick={() => router.push("/")}>
+            Về trang chủ
+          </button>
         </div>
       </div>
     );
@@ -198,12 +231,16 @@ export default function ExamPage({ params }: { params: { id: string } }) {
         <div className={styles.logo}>⛩️ ShikenAI</div>
         <div>{examData.title}</div>
 
-        <div className={`${styles.timer} ${timerDanger ? styles.timerDanger : ''}`}>
+        <div
+          className={`${styles.timer} ${timerDanger ? styles.timerDanger : ""}`}
+        >
           ⏱️ {formatTime(timeLeft)}
         </div>
 
         {warnings > 0 && (
-          <div className={`${styles.warningBadge} ${warnings >= 2 ? styles.danger : ''}`}>
+          <div
+            className={`${styles.warningBadge} ${warnings >= 2 ? styles.danger : ""}`}
+          >
             ⚠️ Warning: {warnings}/{maxWarnings}
           </div>
         )}
@@ -218,8 +255,8 @@ export default function ExamPage({ params }: { params: { id: string } }) {
         </button>
 
         <div className={styles.userProfile}>
-          <div className={styles.avatar}></div>
-          <span>{user?.name || 'Thí sinh'} ⌄</span>
+          <Avatar name={user?.name} size={40} />
+          <span>{user?.name || "Thí sinh"}</span>
         </div>
       </header>
 
@@ -229,13 +266,15 @@ export default function ExamPage({ params }: { params: { id: string } }) {
         <div className={styles.palette}>
           <div className={styles.paletteTitle}>
             <span>Câu hỏi</span>
-            <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>{totalQuestions} câu</span>
+            <span style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+              {totalQuestions} câu
+            </span>
           </div>
           <div className={styles.grid}>
             {examData.questions.map((_: any, idx: number) => (
               <button
                 key={idx}
-                className={`${styles.questionBtn} ${answers[idx] !== undefined ? styles.answered : ''} ${currentQuestionIndex === idx ? styles.active : ''}`}
+                className={`${styles.questionBtn} ${answers[idx] !== undefined ? styles.answered : ""} ${currentQuestionIndex === idx ? styles.active : ""}`}
                 onClick={() => setCurrentQuestionIndex(idx)}
               >
                 {idx + 1}
@@ -251,20 +290,30 @@ export default function ExamPage({ params }: { params: { id: string } }) {
                 style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
               />
             </div>
-            <span className={styles.progressText}>{answeredCount}/{totalQuestions} câu đã làm</span>
+            <span className={styles.progressText}>
+              {answeredCount}/{totalQuestions} câu đã làm
+            </span>
           </div>
 
           <div className={styles.legend}>
-            <div className={styles.legendItem}><div className={`${styles.dot} ${styles.done}`}></div> Đã làm</div>
-            <div className={styles.legendItem}><div className={`${styles.dot} ${styles.todo}`}></div> Chưa làm</div>
+            <div className={styles.legendItem}>
+              <div className={`${styles.dot} ${styles.done}`}></div> Đã làm
+            </div>
+            <div className={styles.legendItem}>
+              <div className={`${styles.dot} ${styles.todo}`}></div> Chưa làm
+            </div>
           </div>
         </div>
 
         {/* Question Area */}
         <div className={styles.mainSection}>
-          <h3 className={styles.questionTitle}>Câu {currentQuestionIndex + 1}</h3>
+          <h3 className={styles.questionTitle}>
+            Câu {currentQuestionIndex + 1}
+          </h3>
           <div className={styles.questionText}>
-            {currentQ?.text.split('\n').map((line: string, i: number) => <p key={i}>{line}</p>)}
+            {currentQ?.text.split("\n").map((line: string, i: number) => (
+              <p key={i}>{line}</p>
+            ))}
           </div>
 
           <div className={styles.options}>
@@ -276,7 +325,9 @@ export default function ExamPage({ params }: { params: { id: string } }) {
                   checked={answers[currentQuestionIndex] === idx}
                   onChange={() => handleSelectAnswer(idx)}
                 />
-                <span style={{ width: '24px', display: 'inline-block' }}>{idx + 1}</span>
+                <span style={{ width: "24px", display: "inline-block" }}>
+                  {idx + 1}
+                </span>
                 <span>{opt}</span>
               </label>
             ))}
@@ -285,7 +336,9 @@ export default function ExamPage({ params }: { params: { id: string } }) {
           <div className={styles.actions}>
             <button
               className={styles.btnSecondary}
-              onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
+              onClick={() =>
+                setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))
+              }
               disabled={currentQuestionIndex === 0}
             >
               Quay lại
@@ -302,13 +355,20 @@ export default function ExamPage({ params }: { params: { id: string } }) {
                   className={`${styles.btnPrimary} ${styles.btnSubmit}`}
                   onClick={() => setShowSubmitModal(true)}
                   disabled={!allAnswered}
-                  title={!allAnswered ? `Còn ${unansweredCount} câu chưa trả lời` : 'Nộp bài'}
+                  title={
+                    !allAnswered
+                      ? `Còn ${unansweredCount} câu chưa trả lời`
+                      : "Nộp bài"
+                  }
                 >
                   Nộp bài
                 </button>
               </div>
             ) : (
-              <button className={styles.btnPrimary} onClick={() => setCurrentQuestionIndex(prev => prev + 1)}>
+              <button
+                className={styles.btnPrimary}
+                onClick={() => setCurrentQuestionIndex((prev) => prev + 1)}
+              >
                 Câu tiếp theo
               </button>
             )}
@@ -320,16 +380,39 @@ export default function ExamPage({ params }: { params: { id: string } }) {
       {showResumeModal && savedProgress && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
-            <div className={styles.modalIcon} style={{ color: '#f59e0b' }}>💾</div>
+            <div className={styles.modalIcon} style={{ color: "#f59e0b" }}>
+              💾
+            </div>
             <h2 className={styles.modalTitle}>Bạn có bài làm dở!</h2>
             <p className={styles.modalText}>
-              Bạn đã làm được <strong>{Object.keys(savedProgress.answers ?? {}).length}/{savedProgress.totalQuestions}</strong> câu.
-              <br />Thời gian còn lại: <strong>{formatTime(savedProgress.timeLeft ?? 0)}</strong>
-              <br /><br />Bạn muốn tiếp tục hay bắt đầu lại?
+              Bạn đã làm được{" "}
+              <strong>
+                {Object.keys(savedProgress.answers ?? {}).length}/
+                {savedProgress.totalQuestions}
+              </strong>{" "}
+              câu.
+              <br />
+              Thời gian còn lại:{" "}
+              <strong>{formatTime(savedProgress.timeLeft ?? 0)}</strong>
+              <br />
+              <br />
+              Bạn muốn tiếp tục hay bắt đầu lại?
             </p>
-            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-              <button className={styles.btnSecondary} style={{ flex: 1 }} onClick={handleStartFresh}>Làm lại</button>
-              <button className={styles.btnPrimary} style={{ flex: 1 }} onClick={handleResume}>Tiếp tục</button>
+            <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
+              <button
+                className={styles.btnSecondary}
+                style={{ flex: 1 }}
+                onClick={handleStartFresh}
+              >
+                Làm lại
+              </button>
+              <button
+                className={styles.btnPrimary}
+                style={{ flex: 1 }}
+                onClick={handleResume}
+              >
+                Tiếp tục
+              </button>
             </div>
           </div>
         </div>
@@ -339,15 +422,31 @@ export default function ExamPage({ params }: { params: { id: string } }) {
       {showPauseModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
-            <div className={styles.modalIcon} style={{ color: '#6366f1' }}>⏸</div>
+            <div className={styles.modalIcon} style={{ color: "#6366f1" }}>
+              ⏸
+            </div>
             <h2 className={styles.modalTitle}>Tạm dừng bài làm?</h2>
             <p className={styles.modalText}>
-              Tiến độ của bạn sẽ được lưu lại. Thời gian còn lại cũng sẽ được lưu để tiếp tục sau.
+              Tiến độ của bạn sẽ được lưu lại. Thời gian còn lại cũng sẽ được
+              lưu để tiếp tục sau.
             </p>
-            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-              <button className={styles.btnSecondary} style={{ flex: 1 }} onClick={() => setShowPauseModal(false)}>Tiếp tục làm</button>
-              <button className={`${styles.btnPrimary} ${styles.btnPauseConfirm}`} style={{ flex: 1 }} onClick={() => { setShowPauseModal(false); handlePause(); }}>
-                {isPausing ? 'Đang lưu...' : 'Lưu & Tạm dừng'}
+            <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
+              <button
+                className={styles.btnSecondary}
+                style={{ flex: 1 }}
+                onClick={() => setShowPauseModal(false)}
+              >
+                Tiếp tục làm
+              </button>
+              <button
+                className={`${styles.btnPrimary} ${styles.btnPauseConfirm}`}
+                style={{ flex: 1 }}
+                onClick={() => {
+                  setShowPauseModal(false);
+                  handlePause();
+                }}
+              >
+                {isPausing ? "Đang lưu..." : "Lưu & Tạm dừng"}
               </button>
             </div>
           </div>
@@ -364,8 +463,12 @@ export default function ExamPage({ params }: { params: { id: string } }) {
               Vui lòng quay lại bài thi. <br />
               Nếu tiếp tục vi phạm, bạn sẽ bị tính là gian lận.
             </p>
-            <span className={styles.warningCount}>Cảnh báo: {warnings}/{maxWarnings}</span>
-            <button className={styles.modalBtn} onClick={acknowledgeWarning}>Tôi đã hiểu</button>
+            <span className={styles.warningCount}>
+              Cảnh báo: {warnings}/{maxWarnings}
+            </span>
+            <button className={styles.modalBtn} onClick={acknowledgeWarning}>
+              Tôi đã hiểu
+            </button>
           </div>
         </div>
       )}
@@ -374,15 +477,30 @@ export default function ExamPage({ params }: { params: { id: string } }) {
       {showSubmitModal && !isSubmitting && !submitMessage && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
-            <div className={styles.modalIcon} style={{ color: '#3b82f6' }}>✅</div>
+            <div className={styles.modalIcon} style={{ color: "#3b82f6" }}>
+              ✅
+            </div>
             <h2 className={styles.modalTitle}>Xác nhận nộp bài</h2>
             <p className={styles.modalText}>
               Bạn đã hoàn thành <strong>tất cả {totalQuestions} câu</strong>.
-              <br />Sau khi nộp sẽ không thể thay đổi đáp án.
+              <br />
+              Sau khi nộp sẽ không thể thay đổi đáp án.
             </p>
-            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-              <button className={styles.btnSecondary} style={{ flex: 1 }} onClick={() => setShowSubmitModal(false)}>Hủy</button>
-              <button className={`${styles.btnPrimary} ${styles.btnSubmit}`} style={{ flex: 1 }} onClick={() => submitExam(false)}>Nộp bài</button>
+            <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+              <button
+                className={styles.btnSecondary}
+                style={{ flex: 1 }}
+                onClick={() => setShowSubmitModal(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className={`${styles.btnPrimary} ${styles.btnSubmit}`}
+                style={{ flex: 1 }}
+                onClick={() => submitExam(false)}
+              >
+                Nộp bài
+              </button>
             </div>
           </div>
         </div>
@@ -393,14 +511,28 @@ export default function ExamPage({ params }: { params: { id: string } }) {
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
             <div className={styles.modalIcon}>
-              {!submitMessage ? '⏳' : isSubmitError ? '❌' : '✅'}
+              {!submitMessage ? "⏳" : isSubmitError ? "❌" : "✅"}
             </div>
             <h2 className={styles.modalTitle}>
-              {!submitMessage ? 'Đang xử lý' : isSubmitError ? 'Có lỗi xảy ra' : 'Thành công'}
+              {!submitMessage
+                ? "Đang xử lý"
+                : isSubmitError
+                  ? "Có lỗi xảy ra"
+                  : "Thành công"}
             </h2>
-            <p className={styles.modalText}>{submitMessage || 'Đang nộp bài...'}</p>
+            <p className={styles.modalText}>
+              {submitMessage || "Đang nộp bài..."}
+            </p>
             {submitMessage && isSubmitError && (
-              <button className={styles.modalBtn} onClick={() => { setSubmitMessage(''); setIsSubmitError(false); }}>Đóng</button>
+              <button
+                className={styles.modalBtn}
+                onClick={() => {
+                  setSubmitMessage("");
+                  setIsSubmitError(false);
+                }}
+              >
+                Đóng
+              </button>
             )}
           </div>
         </div>

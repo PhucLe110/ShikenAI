@@ -1,12 +1,12 @@
-import api from './api';
+import api from "./api";
 
 export const getUsers = async () => {
-  const response = await api.get('/admin/users');
+  const response = await api.get("/admin/users");
   return response.data;
 };
 
 export const lockUser = async (userId: string, reason: string) => {
-  const response = await api.post('/admin/users/lock', { userId, reason });
+  const response = await api.post("/admin/users/lock", { userId, reason });
   return response.data;
 };
 
@@ -15,23 +15,40 @@ export const unlockUser = async (userId: string) => {
   return response.data;
 };
 
-export const handleUnlockRequest = async (userId: string, status: 'approved' | 'rejected') => {
-  const response = await api.post('/admin/users/unlock-request', { userId, status });
+export const handleUnlockRequest = async (
+  userId: string,
+  status: "approved" | "rejected",
+) => {
+  const response = await api.post("/admin/users/unlock-request", {
+    userId,
+    status,
+  });
   return response.data;
 };
 
 export const getPendingResources = async () => {
-  const response = await api.get('/admin/resources/pending');
+  const response = await api.get("/admin/resources/pending");
   return response.data;
 };
 
-export const updateResourceStatus = async (resourceId: string, status: 'approved' | 'rejected') => {
-  const response = await api.post('/admin/resources/status', { resourceId, status });
+export const updateResourceStatus = async (
+  resourceId: string,
+  status: "approved" | "rejected",
+) => {
+  const response = await api.post("/admin/resources/status", {
+    resourceId,
+    status,
+  });
   return response.data;
 };
 
 export const deleteResource = async (resourceId: string) => {
   const response = await api.delete(`/admin/resources/${resourceId}`);
+  return response.data;
+};
+
+export const getAdminExams = async () => {
+  const response = await api.get("/admin/exams");
   return response.data;
 };
 

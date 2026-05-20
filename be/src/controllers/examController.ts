@@ -1,21 +1,20 @@
-import { Request, Response } from 'express';
-import Exam from '../models/Exam';
-import CheatLog from '../models/CheatLog';
-import Submission from '../models/Submission';
+import { Request, Response } from "express";
+import Exam from "../models/Exam";
+import CheatLog from "../models/CheatLog";
+import Submission from "../models/Submission";
 
 // @desc    Lấy danh sách tất cả đề thi
 // @route   GET /api/exams
 // @access  Public
 export const getExams = async (req: Request, res: Response) => {
   try {
-    const exams = await Exam.find({});
-    const mappedExams = exams.map(exam => ({
+    const exams = await Exam.find({ isHidden: { $ne: true } });
+    const mappedExams = exams.map((exam) => ({
       _id: exam._id,
       title: exam.title,
       level: exam.level,
       duration: exam.duration,
-      isHidden: (exam as any).isHidden || false,
-      questionCount: exam.questions ? exam.questions.length : 0
+      questionCount: exam.questions ? exam.questions.length : 0,
     }));
     res.json(mappedExams);
   } catch (error) {
@@ -28,12 +27,13 @@ export const getExams = async (req: Request, res: Response) => {
 // @access  Private
 export const getExamById = async (req: Request, res: Response) => {
   try {
-    const exam = await Exam.findById(req.params.id).select('-questions.correctAnswer');
-    if (exam) {
-      res.json(exam);
-    } else {
-      res.status(404).json({ message: 'Exam not found' });
+    const exam = await Exam.findById(req.params.id).select(
+      "-questions.correctAnswer",
+    );
+    if (!exam || (exam as any).isHidden) {
+      return res.status(404).json({ message: "Exam not found" });
     }
+    res.json(exam);
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
   }
@@ -45,9 +45,9 @@ export const getExamById = async (req: Request, res: Response) => {
 export const recordCheatLog = async (req: Request | any, res: Response) => {
   try {
     const { examId, warningCount, isTerminated, details } = req.body;
-    
+
     if (!examId || warningCount === undefined) {
-      return res.status(400).json({ message: 'Thiếu thông tin bắt buộc' });
+      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
     }
 
     const log = await CheatLog.create({
@@ -55,8 +55,25 @@ export const recordCheatLog = async (req: Request | any, res: Response) => {
       examId,
       warningCount,
       isTerminated,
-      details
+      details,
     });
+
+    // Nếu người dùng bị chấm terminated do quá nhiều cảnh báo,
+    // xóa tiến độ đang dở (status = 'in_progress') để không còn nằm trong mục lưu trữ.
+    if (isTerminated) {
+      try {
+        await Submission.deleteOne({
+          userId: req.user.id,
+          examId,
+          status: "in_progress",
+        });
+      } catch (delErr) {
+        console.error(
+          "Failed to remove in_progress submission after termination:",
+          delErr,
+        );
+      }
+    }
 
     res.status(201).json(log);
   } catch (error) {
@@ -74,30 +91,30 @@ export const saveProgress = async (req: Request | any, res: Response) => {
     const userId = req.user.id;
 
     if (!answers || timeLeft === undefined || timeSpent === undefined) {
-      return res.status(400).json({ message: 'Thiếu thông tin lưu tiến độ' });
+      return res.status(400).json({ message: "Thiếu thông tin lưu tiến độ" });
     }
 
     const exam = await Exam.findById(examId);
     if (!exam) {
-      return res.status(404).json({ message: 'Không tìm thấy đề thi' });
+      return res.status(404).json({ message: "Không tìm thấy đề thi" });
     }
 
     const totalQuestions = exam.questions.length;
 
     // Upsert: nếu đã có bản ghi in_progress thì cập nhật, không thì tạo mới
     const saved = await Submission.findOneAndUpdate(
-      { userId, examId, status: 'in_progress' },
+      { userId, examId, status: "in_progress" },
       {
         answers,
         timeLeft,
         timeSpent,
         totalQuestions,
-        status: 'in_progress',
+        status: "in_progress",
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
 
-    res.status(200).json({ message: 'Đã lưu tiến độ', submission: saved });
+    res.status(200).json({ message: "Đã lưu tiến độ", submission: saved });
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
   }
@@ -111,9 +128,13 @@ export const getProgress = async (req: Request | any, res: Response) => {
     const examId = req.params.id;
     const userId = req.user.id;
 
-    const progress = await Submission.findOne({ userId, examId, status: 'in_progress' });
+    const progress = await Submission.findOne({
+      userId,
+      examId,
+      status: "in_progress",
+    });
     if (!progress) {
-      return res.status(404).json({ message: 'Không có tiến độ đang dở' });
+      return res.status(404).json({ message: "Không có tiến độ đang dở" });
     }
 
     res.json(progress);
@@ -132,12 +153,12 @@ export const submitExam = async (req: Request | any, res: Response) => {
     const userId = req.user.id;
 
     if (!answers || timeSpent === undefined) {
-      return res.status(400).json({ message: 'Thiếu thông tin nộp bài' });
+      return res.status(400).json({ message: "Thiếu thông tin nộp bài" });
     }
 
     const exam = await Exam.findById(examId);
     if (!exam) {
-      return res.status(404).json({ message: 'Không tìm thấy đề thi' });
+      return res.status(404).json({ message: "Không tìm thấy đề thi" });
     }
 
     const totalQuestions = exam.questions.length;
@@ -161,10 +182,10 @@ export const submitExam = async (req: Request | any, res: Response) => {
 
     // Tính điểm
     exam.questions.forEach((question: any, index) => {
-      const skill = question.skill || 'vocab';
+      const skill = question.skill || "vocab";
       if (!skillTotals[skill]) skillTotals[skill] = 0;
       if (!skillScores[skill]) skillScores[skill] = 0;
-      
+
       skillTotals[skill]++;
 
       const selectedOptionIdx = answers[index];
@@ -184,7 +205,7 @@ export const submitExam = async (req: Request | any, res: Response) => {
     const score = (correctCount / totalQuestions) * 100;
 
     // Xoá bản ghi in_progress (nếu có) trước khi tạo completed
-    await Submission.deleteOne({ userId, examId, status: 'in_progress' });
+    await Submission.deleteOne({ userId, examId, status: "in_progress" });
 
     const submission = await Submission.create({
       userId,
@@ -196,9 +217,9 @@ export const submitExam = async (req: Request | any, res: Response) => {
       totalQuestions,
       timeSpent,
       timeLeft: 0,
-      status: 'completed',
+      status: "completed",
       skillScores,
-      skillTotals
+      skillTotals,
     });
 
     res.status(201).json(submission);
@@ -213,14 +234,19 @@ export const submitExam = async (req: Request | any, res: Response) => {
 export const getExamResult = async (req: Request | any, res: Response) => {
   try {
     const submissionId = req.params.submissionId;
-    const submission = await Submission.findById(submissionId).populate('examId', 'title duration level');
-    
+    const submission = await Submission.findById(submissionId).populate(
+      "examId",
+      "title duration level",
+    );
+
     if (!submission) {
-      return res.status(404).json({ message: 'Không tìm thấy kết quả' });
+      return res.status(404).json({ message: "Không tìm thấy kết quả" });
     }
 
     if (submission.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Không có quyền truy cập kết quả này' });
+      return res
+        .status(403)
+        .json({ message: "Không có quyền truy cập kết quả này" });
     }
 
     res.json(submission);
@@ -236,23 +262,25 @@ export const getExamReview = async (req: Request | any, res: Response) => {
   try {
     const submissionId = req.params.submissionId;
     const submission = await Submission.findById(submissionId);
-    
+
     if (!submission) {
-      return res.status(404).json({ message: 'Không tìm thấy kết quả' });
+      return res.status(404).json({ message: "Không tìm thấy kết quả" });
     }
 
     if (submission.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Không có quyền truy cập kết quả này' });
+      return res
+        .status(403)
+        .json({ message: "Không có quyền truy cập kết quả này" });
     }
 
     const exam = await Exam.findById(submission.examId);
     if (!exam) {
-       return res.status(404).json({ message: 'Không tìm thấy đề thi' });
+      return res.status(404).json({ message: "Không tìm thấy đề thi" });
     }
 
     res.json({
-       exam,
-       submission
+      exam,
+      submission,
     });
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });

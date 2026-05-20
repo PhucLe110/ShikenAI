@@ -77,4 +77,4 @@ ShikenAI/
 Mọi ý đóng góp đều được trân trọng! Nếu bạn tìm thấy lỗi hoặc có ý tưởng mới, vui lòng mở một **Issue** hoặc tạo **Pull Request**.
 
 ---
-*Phát triển bởi [Tên của bạn/Team]* 🇯🇵✨
+*Phát triển bởi [Phúc Lê + Nhi Nguyễn]* 🇯🇵✨
